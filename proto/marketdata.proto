@@ -1,0 +1,81 @@
+syntax = "proto3";
+
+package marketdata;
+
+option go_package = "github.com/adeilh/grpcmarketdatamock/proto";
+
+// Message representing a full snapshot of market data.
+message MarketData {
+  string symbol = 1;
+  double bid_price = 2;
+  double ask_price = 3;
+  double last_traded_price = 4;
+  double open_price = 5;
+  double high_price = 6;
+  double low_price = 7;
+  double close_price = 8;
+  int64 volume = 9;
+  string exchange = 10;
+  int64 timestamp = 11;
+}
+
+// Update for the bid price and bid volume.
+message BidUpdate {
+  string symbol = 1;
+  double bid_price = 2;
+  int64 bid_volume = 3; // Volume for bid.
+  int64 timestamp = 4;
+}
+
+// Update for the ask price and ask volume.
+message AskUpdate {
+  string symbol = 1;
+  double ask_price = 2;
+  int64 ask_volume = 3; // Volume for ask.
+  int64 timestamp = 4;
+}
+
+// Update for the last traded price.
+message LastTradeUpdate {
+  string symbol = 1;
+  double last_traded_price = 2;
+  int64 volume = 3; // Volume for this trade.
+  int64 timestamp = 4;
+}
+
+// Update for the overall trading volume.
+message VolumeUpdate {
+  string symbol = 1;
+  int64 volume = 2; // Total volume for the trading day.
+  int64 timestamp = 3;
+}
+
+// Unified update message that can contain any of the specific updates.
+message MarketDataUpdate {
+  string symbol = 1;
+  oneof update {
+    BidUpdate bid_update = 2;
+    AskUpdate ask_update = 3;
+    LastTradeUpdate last_trade_update = 4;
+    VolumeUpdate volume_update = 5;
+  }
+}
+
+// Message representing a request for market data for a specific symbol.
+message MarketDataRequest {
+  string symbol = 1; // The ticker symbol to request data for.
+}
+
+// Message representing a response to a market data request.
+message MarketDataResponse {
+  MarketData data = 1; // Market data for the requested symbol.
+}
+
+// Service definition for requesting and streaming market data.
+service MarketDataService {
+  // Unary RPC method for getting a single snapshot of market data.
+  rpc GetMarketData(MarketDataRequest) returns (MarketDataResponse);
+
+  // Server-streaming RPC method for pushing market data updates.
+  rpc StreamMarketData(MarketDataRequest) returns (stream MarketDataUpdate);
+}
